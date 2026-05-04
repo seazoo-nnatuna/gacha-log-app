@@ -39,12 +39,21 @@ function App() {
     else setLogs(data)
   }
 
-  // --- 画面が開いた時に一度だけデータを読み込む ---
+  // --- 修正版：データの自動読み込み設定 ---
+  useEffect(() => {
+    // session（ログイン状態）がある時だけデータを読み込む
+    if (session) {
+      fetchLogs();
+    } else {
+      // ログアウトした時はリストを空にする（安全のため）
+      setLogs([]);
+    }
+  }, [session]); // session が変わる（ログイン・ログアウトする）たびに実行する
+  /*
   useEffect(() => {
     fetchLogs()
   }, [])
-  // ReactからuseEffectをインポートしておく必要があります
-  // import { useState, useEffect } from 'react'; 
+  */
 
   useEffect(() => {
     // 「すべて」以外のゲームが選ばれた時だけ、フォームのゲーム名も書き換える
@@ -86,14 +95,7 @@ function App() {
         } else {
           console.log("ログイン成功！", data);
       // 成功すれば、useEffectの監視によって自動的に session が更新され、画面が切り替わります
-    }
-/*        
-        const handleLogin = async (e) => {
-          e.preventDefault();
-          const { error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) alert("ログイン失敗: " + error.message);
         }
-*/
       }
   };
 
