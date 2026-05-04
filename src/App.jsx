@@ -10,6 +10,7 @@ function App() {
     rarity: 5,
     is_pickup: true
   })
+  const [selectedGame, setSelectedGame] = useState('すべて');
 
   // --- データを取得する関数 ---
   const fetchLogs = async () => {
@@ -72,6 +73,30 @@ return (
     <div style={{ padding: '20px', backgroundColor: '#1a1a1a', color: 'white', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       <h1>ガチャ統計分析</h1>
 
+      {/* --- ここから追加 --- */}
+      {['すべて', 'ゼンレスゾーンゼロ', '崩壊：スターレイル', '原神', 'アークナイツ'].map((game) => (
+        <button
+          key={game}
+          onClick={() => setSelectedGame(game)}
+          style={{
+            padding: '8px 16px',
+            marginRight: '10px',
+            marginBottom: '10px',
+            borderRadius: '20px',
+            border: 'none',
+            // 現在選ばれているボタンだけ色を変える
+            backgroundColor: selectedGame === game ? '#FFD700' : '#444',
+            color: selectedGame === game ? '#000' : '#fff',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
+          {game}
+        </button>
+      ))}
+      {/* --- ここまで追加 --- */}
+
+
       {/* 集計パネル */}
       <div style={{ 
         display: 'grid', 
@@ -123,9 +148,18 @@ return (
       {/* 履歴一覧 */}
       <h2>ガチャ履歴</h2>
       <div style={{ display: 'grid', gap: '10px' }}>
-        {logs.map((log) => (
+        {logs
+          .filter(log => {
+                // 「すべて」が選ばれているなら全部通す
+                if (selectedGame === 'すべて') return true;
+                // そうでなければ、ログのゲーム名と選んだボタンの名前が一致するものだけ通す
+                return log.game_name === selectedGame;
+              })
+          .map((log) => (
           <div key={log.id} style={{ backgroundColor: '#333', padding: '15px', borderRadius: '8px', borderLeft: log.game_name === 'ゼンレスゾーンゼロ' ? '5px solid #FFD700' : '5px solid #00BFFF' }}>
-{/* 削除ボタン */}
+
+
+      {/* 削除ボタン */}
             <button 
               onClick={() => handleDelete(log.id)}
               style={{
