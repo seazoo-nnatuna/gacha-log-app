@@ -59,22 +59,26 @@ function App() {
   }
 
   // --- 集計ロジック ---
+  // 現在の選択に合わせて絞り込まれたログ
+  const filteredLogs = logs.filter(log => 
+    selectedGame === 'すべて' || log.game_name === selectedGame
+  );    
+
   // 1. 全体の合計連数
-  const totalPulls = logs.reduce((sum, log) => sum + log.pull_count, 0)
+  const totalPulls = filteredLogs.reduce((sum, log) => sum + log.pull_count, 0);
 
   // 2. 星5（レア度5）の数
-  const star5Logs = logs.filter(log => log.rarity === 5)
-  const star5Count = star5Logs.length
+  const star5Count = filteredLogs.filter(log => log.item_name.includes('★5') || log.rarity === 5).length; // 条件は既存のコードに合わせてください
 
   // 3. 星5の期待値（平均何連で引けているか）
-  const averagePulls = star5Count > 0 ? (totalPulls / star5Count).toFixed(1) : 0
+  const averagePulls = star5Count > 0 ? (totalPulls / star5Count).toFixed(1) : 0;  
 
 return (
     <div style={{ padding: '20px', backgroundColor: '#1a1a1a', color: 'white', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       <h1>ガチャ統計分析</h1>
 
       {/* --- ここから追加 --- */}
-      {['すべて', 'ゼンレスゾーンゼロ', '崩壊：スターレイル', '原神', 'アークナイツ'].map((game) => (
+      {['すべて', 'ゼンレスゾーンゼロ', '崩壊：スターレイル', 'アークナイツ：エンドフィールド', 'アークナイツ'].map((game) => (
         <button
           key={game}
           onClick={() => setSelectedGame(game)}
@@ -129,7 +133,8 @@ return (
           <select value={formData.game_name} onChange={(e) => setFormData({...formData, game_name: e.target.value})} style={{ padding: '8px' }}>
             <option>ゼンレスゾーンゼロ</option>
             <option>崩壊：スターレイル</option>
-            <option>原神</option>
+            <option>アークナイツ：エンドフィールド</option>
+            <option>アークナイツ</option>
           </select>
         </div>
         <div>
