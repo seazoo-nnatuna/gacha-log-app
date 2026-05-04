@@ -161,7 +161,7 @@ return (
                 return log.game_name === selectedGame;
               })
           .map((log) => (
-          <div key={log.id} style={{ backgroundColor: '#333', padding: '15px', borderRadius: '8px', borderLeft: log.game_name === 'ゼンレスゾーンゼロ' ? '5px solid #FFD700' : '5px solid #00BFFF' }}>
+          <div key={log.id} style={{ position: 'relative',　backgroundColor: '#333', padding: '15px', borderRadius: '8px', borderLeft: log.game_name === 'ゼンレスゾーンゼロ' ? '5px solid #FFD700' : '5px solid #00BFFF' }}>
 
 
       {/* 削除ボタン */}
@@ -182,8 +182,11 @@ return (
             >
               削除
             </button>
+
             <div style={{ fontSize: '0.8rem', color: '#aaa' }}>{new Date(log.created_at).toLocaleString()}</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{log.item_name} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>({log.pull_count}連目)</span></div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+              {log.item_name} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>({log.pull_count}連目)</span>
+            </div>
             <div style={{ color: '#eee' }}>{log.game_name}</div>
           </div>
         ))}
