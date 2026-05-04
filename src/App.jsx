@@ -24,9 +24,21 @@ function App() {
   }
 
   // --- 画面が開いた時に一度だけデータを読み込む ---
+//  useEffect(() => {
+//    fetchLogs()
+//  }, [])
+  // ReactからuseEffectをインポートしておく必要があります
+  // import { useState, useEffect } from 'react'; 
+
   useEffect(() => {
-    fetchLogs()
-  }, [])
+    // 「すべて」以外のゲームが選ばれた時だけ、フォームのゲーム名も書き換える
+    if (selectedGame !== 'すべて') {
+      setFormData(prev => ({
+        ...prev,
+        game_name: selectedGame
+      }));
+    }
+  }, [selectedGame]); // selectedGame が変わるたびに実行される
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -127,28 +139,26 @@ return (
       </div>
       
       {/* 入力フォーム */}
-      <form onSubmit={handleSubmit} style={{ marginBottom: '40px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <div>
-          <label style={{ display: 'block' }}>ゲーム</label>
-          <select value={formData.game_name} onChange={(e) => setFormData({...formData, game_name: e.target.value})} style={{ padding: '8px' }}>
-            <option>ゼンレスゾーンゼロ</option>
-            <option>崩壊：スターレイル</option>
-            <option>アークナイツ：エンドフィールド</option>
-            <option>アークナイツ</option>
-          </select>
-        </div>
-        <div>
-          <label style={{ display: 'block' }}>当たったもの</label>
-          <input type="text" value={formData.item_name} onChange={(e) => setFormData({...formData, item_name: e.target.value})} placeholder="エレンなど" style={{ padding: '8px' }} required />
-        </div>
-        <div>
-          <label style={{ display: 'block' }}>連数</label>
-          <input type="number" value={formData.pull_count} onChange={(e) => setFormData({...formData, pull_count: parseInt(e.target.value)})} style={{ padding: '8px', width: '60px' }} />
-        </div>
-        <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          保存
-        </button>
-      </form>
+      {selectedGame !== 'すべて' ? (
+        <form onSubmit={handleSubmit} style={{ marginBottom: '40px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div>
+            <label style={{ display: 'block' }}>当たったもの</label>
+            <input type="text" value={formData.item_name} onChange={(e) => setFormData({...formData, item_name: e.target.value})} placeholder="エレンなど" style={{ padding: '8px' }} required />
+          </div>
+          <div>
+            <label style={{ display: 'block' }}>連数</label>
+            <input type="number" value={formData.pull_count} onChange={(e) => setFormData({...formData, pull_count: parseInt(e.target.value)})} style={{ padding: '8px', width: '60px' }} />
+          </div>
+          <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            保存
+          </button>
+        </form>
+      ) : (
+        <p style={{ color: '#aaa', textAlign: 'center' }}>
+          データを入力するには、上のゲーム名ボタンを選択してください。
+        </p>
+      )
+      }
 
       {/* 履歴一覧 */}
       <h2>ガチャ履歴</h2>
