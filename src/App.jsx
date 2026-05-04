@@ -13,6 +13,7 @@ function App() {
   })
   const [selectedGame, setSelectedGame] = useState('すべて');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   // --- 1. ログイン状態の監視 ---
   useEffect(() => {
@@ -105,14 +106,31 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const { error } = await supabase.from('gacha_logs').insert([formData])
 
-    if (error) {
-      alert('エラーが発生しました: ' + error.message)
+    if (editingId) {
+      // 【更新】の処理
+      const { error } = await supabase
+        .from('gacha_logs')
+        .update(formData)
+        .eq('id', editingId);
+
+      if (error) alert('更新エラー: ' + error.message);
+      else {
+        alert('更新しました！');
+        setEditingId(null);
+        setFormData({ ...formData, item_name: '', pull_count: 0 });
+        fetchLogs();
+      }
     } else {
-      alert('ガチャ結果を記録しました！')
-      setFormData({ ...formData, item_name: '', pull_count: 0 })
-      fetchLogs() // 保存に成功したらリストを更新する
+      const { error } = await supabase.from('gacha_logs').insert([formData])
+
+      if (error) {
+        alert('エラーが発生しました: ' + error.message)
+      } else {
+        alert('ガチャ結果を記録しました！')
+        setFormData({ ...formData, item_name: '', pull_count: 0 })
+        fetchLogs() // 保存に成功したらリストを更新する
+      }
     }
   }
 
@@ -148,6 +166,24 @@ function App() {
   // 3. 星5の期待値（平均何連で引けているか）
   const averagePulls = star5Count > 0 ? (totalPulls / star5Count).toFixed(1) : 0;  
 
+
+  // --- PU率の集計ロジック ---
+  // 1. 星5（レア度5）のデータだけを抽出
+  const star5Logs = filteredLogs.filter(log => log.rarity === 5);
+
+  // 2. 星5の中で、PU（is_pickupがtrue）を引いた数
+  const pickupCount = star5Logs.filter(log => log.is_pickup === true).length;
+
+  // 3. 星5の中で、すり抜け（is_pickupがfalse）を引いた数
+  const surinukeCount = star5Logs.length - pickupCount;
+
+  // 4. PU率（星5を引いたとき、どれくらいの確率でPUだったか）
+  const pickupRate = star5Logs.length > 0 
+    ? ((pickupCount / star5Logs.length) * 100).toFixed(1) 
+    : 0;
+
+
+
   // --- 4. 表示の切り替え ---
   // ログインしていない時
   if (!session) {
@@ -176,6 +212,24 @@ function App() {
       </div>
     );
   }
+
+  const startEdit = (log) => {
+    setEditingId(log.id);
+    setFormData({
+      game_name: log.game_name,
+      item_name: log.item_name,
+      pull_count: log.pull_count,
+      rarity: log.rarity,
+      is_pickup: log.is_pickup
+    });
+    // 画面上部へスクロールさせる（フォームが上にある場合）
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setFormData({ game_name: selectedGame !== 'すべて' ? selectedGame : 'ゼンレスゾーンゼロ', item_name: '', pull_count: 0, rarity: 5, is_pickup: true });
+  };
 
 return (
     <div style={{ padding: '20px', backgroundColor: '#1a1a1a', color: 'white', minHeight: '100vh', fontFamily: 'sans-serif' }}>
@@ -230,7 +284,19 @@ return (
           <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#FF5722' }}>{averagePulls}<span style={{fontSize: '1rem'}}>連</span></div>
         </div>
       </div>
-      
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1-1-1', gap: '10px', marginBottom: '20px' }}>
+        {/* 既存の合計連数などのカード... */}
+        
+        <div style={{ background: '#333', padding: '15px', borderRadius: '10px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.8rem', color: '#aaa' }}>星5中 PU率</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FFD700' }}>{pickupRate}%</div>
+          <div style={{ fontSize: '0.7rem', marginTop: '5px' }}>
+            (PU: {pickupCount} / すり抜け: {surinukeCount})
+          </div>
+        </div>
+      </div>
+
       {/* 入力フォーム */}
       {selectedGame !== 'すべて' ? (
         <form onSubmit={handleSubmit} style={{ marginBottom: '40px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
@@ -242,9 +308,24 @@ return (
             <label style={{ display: 'block' }}>連数</label>
             <input type="number" value={formData.pull_count} onChange={(e) => setFormData({...formData, pull_count: parseInt(e.target.value)})} style={{ padding: '8px', width: '60px' }} />
           </div>
+
+          {/*保存/編集ボタン*/}
           <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-            保存
+            {editingId ? '更新する' : '記録'}
           </button>
+          {editingId && (
+            <button type="button" onClick={cancelEdit} style={{ marginLeft: '10px' }}>キャンセル</button>
+          )}
+
+          {/*PUチェックボックス*/}
+          <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+            <input 
+              type="checkbox" 
+              checked={formData.is_pickup}
+              onChange={(e) => setFormData({...formData, is_pickup: e.target.checked})}
+            />
+            <span>ピックアップ引き</span>
+          </label>
         </form>
       ) : (
         <p style={{ color: '#aaa', textAlign: 'center' }}>
@@ -266,6 +347,7 @@ return (
           .map((log) => (
           <div key={log.id} style={{ position: 'relative',　backgroundColor: '#333', padding: '15px', borderRadius: '8px', borderLeft: log.game_name === 'ゼンレスゾーンゼロ' ? '5px solid #FFD700' : '5px solid #00BFFF' }}>
 
+      <button onClick={() => startEdit(log)}>編集</button>            
 
       {/* 削除ボタン */}
             <button 
