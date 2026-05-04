@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
 
 function App() {
+  const [session, setSession] = useState(null);
   const [logs, setLogs] = useState([]) // 取得したデータを保存する場所
   const [formData, setFormData] = useState({
     game_name: 'ゼンレスゾーンゼロ',
@@ -11,6 +12,21 @@ function App() {
     is_pickup: true
   })
   const [selectedGame, setSelectedGame] = useState('すべて');
+  const [isSignUp, setIsSignUp] = useState(false);
+
+  // --- 1. ログイン状態の監視 ---
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
 
   // --- データを取得する関数 ---
   const fetchLogs = async () => {
@@ -39,6 +55,51 @@ function App() {
       }));
     }
   }, [selectedGame]); // selectedGame が変わるたびに実行される
+
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    console.log("ボタンが押されました");
+
+    if (isSignUp) {
+        // 【新規登録】の処理
+        const { error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            // 先ほど設定した「Confirm Email」がOFFなら、これですぐログイン状態になります
+            emailRedirectTo: window.location.origin,
+          }
+        });
+        if (error) {
+          alert("登録失敗: " + error.message);
+        } else {
+          alert("確認メールを送りました（認証OFFならそのままログインできます）");
+        }
+      } else {
+        // 【ここをチェック！】ログインの処理
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          alert("ログイン失敗: " + error.message);
+        } else {
+          console.log("ログイン成功！", data);
+      // 成功すれば、useEffectの監視によって自動的に session が更新され、画面が切り替わります
+    }
+/*        
+        const handleLogin = async (e) => {
+          e.preventDefault();
+          const { error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) alert("ログイン失敗: " + error.message);
+        }
+*/
+      }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -85,9 +146,39 @@ function App() {
   // 3. 星5の期待値（平均何連で引けているか）
   const averagePulls = star5Count > 0 ? (totalPulls / star5Count).toFixed(1) : 0;  
 
+  // --- 4. 表示の切り替え ---
+  // ログインしていない時
+  if (!session) {
+    return (
+      <div style={{ backgroundColor: '#1a1a1a', color: 'white', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ background: '#333', padding: '30px', borderRadius: '10px', width: '300px' }}>
+          <h2 style={{ textAlign: 'center' }}>
+            {isSignUp ? '新規アカウント作成' : 'ガチャ管理ログイン'}
+          </h2>
+          
+          <form onSubmit={handleAuth}>
+            <input name="email" type="email" placeholder="メールアドレス" required style={{ width: '100%', marginBottom: '10px', padding: '8px', boxSizing: 'border-box' }} />
+            <input name="password" type="password" placeholder="パスワード" required style={{ width: '100%', marginBottom: '20px', padding: '8px', boxSizing: 'border-box' }} />
+            <button type="submit" style={{ width: '100%', padding: '10px', background: '#FFD700', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+              {isSignUp ? '新規登録' : 'ログイン'}
+            </button>
+          </form>
+
+          <button 
+            onClick={() => setIsSignUp(!isSignUp)} 
+            style={{ width: '100%', marginTop: '15px', background: 'none', border: 'none', color: '#FFD700', cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            {isSignUp ? 'ログイン画面へ戻る' : '初めての方はこちら（新規登録）'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
 return (
     <div style={{ padding: '20px', backgroundColor: '#1a1a1a', color: 'white', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       <h1>ガチャ統計分析</h1>
+      <button onClick={handleSignOut} style={{ padding: '5px 15px', cursor: 'pointer' }}>ログアウト</button>
 
       {/* --- ここから追加 --- */}
       {['すべて', 'ゼンレスゾーンゼロ', '崩壊：スターレイル', 'アークナイツ：エンドフィールド', 'アークナイツ'].map((game) => (
