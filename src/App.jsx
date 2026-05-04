@@ -24,9 +24,9 @@ function App() {
   }
 
   // --- 画面が開いた時に一度だけデータを読み込む ---
-//  useEffect(() => {
-//    fetchLogs()
-//  }, [])
+  useEffect(() => {
+    fetchLogs()
+  }, [])
   // ReactからuseEffectをインポートしておく必要があります
   // import { useState, useEffect } from 'react'; 
 
