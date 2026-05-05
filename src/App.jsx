@@ -3,8 +3,10 @@ import { supabase } from './supabase'
 
 const GAME_THEMES = {
   'すべて': { bg: '#1a1a1a', accent: '#ffffff' },
-  'ゼンレスゾーンゼロ': { bg: '#eaff2b', accent: '#d0ff01' }, // 黄色ベース
-  '崩壊：スターレイル': { bg: '#1c1e3a', accent: '#4facfe' }, // 紺・青ベース
+  'ゼンレスゾーンゼロ': { bg: '#eaff2b', accent: '#d0ff01',
+    img: 'https://hqmakmtfaxfndxuqnbdz.supabase.co/storage/v1/object/public/BackGround/d9664f1281ca4dc8d057cbafb4df7ca9_754884677841569119.jpg'   }, // 紺・青ベース
+  '崩壊：スターレイル': { bg: '#1c1e3a', accent: '#4facfe',
+    img: 'https://hqmakmtfaxfndxuqnbdz.supabase.co/storage/v1/object/public/BackGround/412e118223d7dd96e68a2d057ba5717c_2106392138985937904.webp' }, // 黄色ベース
   'アークナイツ：エンドフィールド': { bg: '#2c3e50', accent: '#a5dec0' },            // 緑・白ベース
   'アークナイツ': { bg: '#2c3e50', accent: '#a5dec0' }            // 緑・白ベース
 };
@@ -245,210 +247,274 @@ function App() {
 
 return (
     <div style={{
-        padding: '20px',
-        background: `radial-gradient(circle at top left, ${currentTheme.bg}, #000)`,
-        transition: 'all 0.8s ease',
-        color: 'white',
-        minHeight: '100vh',
-        fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-        maxWidth: '800px',
-        margin: '0 auto' // 中央寄せ
-      }}>
-
-    {/* ヘッダーエリア */}
-    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-      <h1 style={{ fontSize: '1.5rem', letterSpacing: '2px', borderLeft: `4px solid ${currentTheme.accent}`, paddingLeft: '15px' }}>
-        ガチャデータ集計
-      </h1>
-      <button onClick={handleSignOut} style={{ 
-        background: 'transparent', border: '1px solid #666', color: '#ccc', 
-        padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' 
-      }}>ログアウト</button>
-    </header>
-
-
-    {/* ゲーム選択タブ */}
-        <nav style={{ marginBottom: '30px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-          {Object.keys(GAME_THEMES).map((game) => (
-            <button
-              key={game}
-              onClick={() => setSelectedGame(game)}
-              style={{
-                padding: '10px 20px',
-                borderRadius: '4px',
-                border: 'none',
-                backgroundColor: selectedGame === game ? currentTheme.accent : 'rgba(255,255,255,0.1)',
-                color: selectedGame === game ? '#000' : '#fff',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'all 0.3s',
-                fontSize: '0.85rem'
-              }}
-            >
-              {game}
-            </button>
-          ))}
-        </nav>
-
-
-    {/* 集計ダッシュボード */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
-        gap: '15px', 
-        marginBottom: '30px'
+      backgroundColor: '#121212', // ベースの背景色
+      color: 'white',
+      minHeight: '100vh',
+      fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    }}>
+      
+      {/* 2. 新しく追加した「上部の背景画像エリア」 */}
+      <div style={{
+        backgroundImage: currentTheme.img ? `url(${currentTheme.img})` : 'none',
+        backgroundSize: 'contain', // 画像全体を収める
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'top center', // 画像を上部中央に配置
+        position: 'relative',
       }}>
         
-      <StatCard label="累計連数" value={totalPulls} color="#fff" />
-      <StatCard label="星5獲得" value={star5Count} color="#FFD700" />
-      <StatCard label="星5期待値" value={averagePulls} unit="連" color="#ff4fac" />
-      <StatCard label="PU率" value={pickupRate} unit="%" color="#4facfe" />
-    </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1-1-1', gap: '10px', marginBottom: '20px' }}>
-        {/* 既存の合計連数などのカード... */}
+        {/* 背景を少し暗くして文字を読みやすくするフィルター */}
         <div style={{
-          background: 'rgba(59, 28, 88, 0.3)', // 半透明
-          backdropFilter: 'blur(12px)',           // 背景をぼかす
-          border: '1px solid rgba(255, 255, 255, 0.2)', // 薄い枠線を追加
-          padding: '15px',
-          borderRadius: '10px',
-          textAlign: 'center' }}>
-          <div style={{ fontSize: '0.8rem', color: '#aaa' }}>星5中 PU率</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FFD700' }}>{pickupRate}%</div>
-          <div style={{ fontSize: '0.7rem', marginTop: '5px' }}>
-            (PU: {pickupCount} / すり抜け: {surinukeCount})
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.4)', 
+          zIndex: 0
+        }}></div>
+
+        {/* 3. 上部のコンテンツ（ヘッダーからPU率まで） */}
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', position: 'relative', zIndex: 1 }}>
+
+          {/* ヘッダーエリア */}
+          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+            <h1 style={{ fontSize: '1.5rem', letterSpacing: '2px', borderLeft: `4px solid ${currentTheme.accent}`, paddingLeft: '15px' }}>
+              ガチャデータ集計
+            </h1>
+          <ActionButton 
+            text="ログアウト" 
+            onClick={handleSignOut} 
+            style={{ backgroundColor: '#444', color: '#fff' }} // ログアウトは目立たせたくないので色を上書き
+          />
+          </header>
+
+          {/* ゲーム選択タブ */}
+          <nav style={{ marginBottom: '30px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {Object.keys(GAME_THEMES).map((game) => (
+              <button
+                key={game}
+                onClick={() => setSelectedGame(game)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '4px',
+                  border: 'none',
+                  backgroundColor: selectedGame === game ? currentTheme.accent : 'rgba(255,255,255,0.1)',
+                  color: selectedGame === game ? '#000' : '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  transition: 'all 0.3s',
+                  fontSize: '0.85rem'
+                }}
+              >
+                {game}
+              </button>
+            ))}
+          </nav>
+
+          {/* 集計ダッシュボード */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
+            gap: '15px', 
+            marginBottom: '15px'
+          }}>
+            <StatCard label="累計連数" value={totalPulls} color="#fff" />
+            <StatCard label="星5獲得" value={star5Count} color="#FFD700" />
+            <StatCard label="星5期待値" value={averagePulls} unit="連" color="#ff4fac" />
+            <StatCard label="PU率" value={pickupRate} unit="%" color="#4facfe" />
           </div>
+
+          {/* 詳細なPU率パネル */}
+          <div style={{
+            background: 'rgba(59, 28, 88, 0.3)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            padding: '15px',
+            borderRadius: '10px',
+            textAlign: 'center',
+            marginBottom: '10px'
+          }}>
+            <div style={{ fontSize: '0.8rem', color: '#aaa' }}>星5中 PU率</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FFD700' }}>{pickupRate}%</div>
+            <div style={{ fontSize: '0.7rem', marginTop: '5px' }}>
+              (PU: {pickupCount} / すり抜け: {surinukeCount})
+            </div>
+          </div>
+
         </div>
       </div>
+      {/* --- 上部エリアここまで --- */}
 
-  {/* 入力フォームセクション */}
-      {selectedGame !== 'すべて' ? (
-        <section style={{
-          background: 'rgba(255, 255, 255, 0.05)',
-          padding: '25px',
-          borderRadius: '15px',
-          border: '1px solid rgba(255,255,255,0.1)',
-          marginBottom: '40px'
-        }}>
-          <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '1rem' }}>
-            {editingId ? '編集中...' : '結果を記録'}
-          </h3>
-          <form onSubmit={handleSubmit} style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '15px',
-            alignItems: 'center' }}>
 
-            {/*獲得アイテム*/}
-            <div style={{ flex: '2', minWidth: '200px' }}>
-                  <label style={{ fontSize: '0.8rem', color: '#aaa', display: 'block', marginBottom: '5px' }}>獲得アイテム / キャラ</label>
-                  <input 
-                    type="text" 
-                    value={formData.item_name} 
-                    onChange={(e) => setFormData({...formData, item_name: e.target.value})} 
-                    placeholder="名前を入力" 
-                    style={{ width: '100%', padding: '12px', background: '#222', border: '1px solid #444', borderRadius: '6px', color: '#fff', boxSizing: 'border-box' }} 
-                    required 
-                  />
-                </div>
+      {/* 4. 下部エリア（フォームと履歴） */}
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
 
-            {/*連数*/}
-            <div style={{ flex: '1', minWidth: '80px' }}>
-                  <label style={{ fontSize: '0.8rem', color: '#aaa', display: 'block', marginBottom: '5px' }}>連数</label>
-                  <input 
-                    type="number" 
-                    value={formData.pull_count} 
-                    onChange={(e) => setFormData({...formData, pull_count: parseInt(e.target.value)})} 
-                    style={{ width: '100%', padding: '12px', background: '#222', border: '1px solid #444', borderRadius: '6px', color: '#fff', boxSizing: 'border-box' }} 
-                  />
-                </div>
-
-            <div style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              gap: '20px',
-              borderTop: '1px solid rgba(255,255,255,0.1)',
-              paddingTop: '15px' }}>
-
-              {/*pick Up*/}
-              <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#fff' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={formData.is_pickup}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      onChange={(e) => setFormData({...formData, is_pickup: e.target.checked})}
-                    />
-                    Pick Up
-                  </label>
-
-            <div style={{ display: 'flex', gap: '10px' }}>
-              {editingId && (
-                <button type="button" onClick={cancelEdit} style={{ background: 'none', color: '#aaa', border: 'none', cursor: 'pointer', padding: '0 10px' }}>
-                  キャンセル
-                </button>
-              )}
-              <button type="submit" style={{ 
-                padding: '12px 30px', 
-                backgroundColor: currentTheme.accent, 
-                color: '#000', 
-                border: 'none', 
-                borderRadius: '6px', 
-                cursor: 'pointer', 
-                fontWeight: 'bold',
-                boxShadow: '0 4px 0 rgba(0,0,0,0.2)' // 少し立体感
-              }}>
-                {editingId ? '更新する' : '結果を記録'}
-              </button>
-            </div>
-          </div>
-        </form>
-      </section>
-      ) : (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#666', border: '2px dashed #333', borderRadius: '15px', marginBottom: '40px' }}>
-          ゲームを選択すると記録が可能になります
-        </div>
-      )}
-
-      {/* 履歴リスト */}
-      <h2 style={{ fontSize: '1.2rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ width: '12px', height: '12px', backgroundColor: currentTheme.accent, borderRadius: '50%' }}></span>
-        LOGS
-      </h2>
-      <div style={{ display: 'grid', gap: '12px' }}>
-        {filteredLogs.map((log) => (
-          <div key={log.id} style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            background: 'rgba(255, 255, 255, 0.03)',
-            backdropFilter: 'blur(10px)',
-            padding: '15px 20px',
-            borderRadius: '10px',
-            borderLeft: `4px solid ${log.is_pickup ? '#FFD700' : '#4facfe'}`,
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+        {/* 入力フォームセクション */}
+        {selectedGame !== 'すべて' ? (
+          <section style={{
+            background: 'rgba(255, 255, 255, 0.05)',
+            padding: '25px',
+            borderRadius: '15px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            marginBottom: '40px'
           }}>
-            <div>
-              <div style={{ fontSize: '0.7rem', color: '#777', marginBottom: '4px' }}>
-                {new Date(log.created_at).toLocaleDateString()} · {log.game_name}
+            <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '1rem' }}>
+              {editingId ? '編集中...' : '結果を記録'}
+            </h3>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
+              <div style={{ flex: '2', minWidth: '200px' }}>
+                <label style={{ fontSize: '0.8rem', color: '#aaa', display: 'block', marginBottom: '5px' }}>獲得アイテム / キャラ</label>
+                <input 
+                  type="text" 
+                  value={formData.item_name} 
+                  onChange={(e) => setFormData({...formData, item_name: e.target.value})} 
+                  placeholder="名前を入力" 
+                  style={{ width: '100%', padding: '12px', background: '#222', border: '1px solid #444', borderRadius: '6px', color: '#fff', boxSizing: 'border-box' }} 
+                  required 
+                />
               </div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {log.item_name}
-                <span style={{ fontSize: '0.8rem', color: log.is_pickup ? '#FFD700' : '#aaa', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
-                  {log.pull_count}連 {log.is_pickup ? 'PICKUP' : '通常'}
-                </span>
+              <div style={{ flex: '1', minWidth: '80px' }}>
+                <label style={{ fontSize: '0.8rem', color: '#aaa', display: 'block', marginBottom: '5px' }}>連数</label>
+                <input 
+                  type="number" 
+                  value={formData.pull_count} 
+                  onChange={(e) => setFormData({...formData, pull_count: parseInt(e.target.value)})} 
+                  style={{ width: '100%', padding: '12px', background: '#222', border: '1px solid #444', borderRadius: '6px', color: '#fff', boxSizing: 'border-box' }} 
+                />
               </div>
-            </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => startEdit(log)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.8rem' }}>編集</button>
-              <button onClick={() => handleDelete(log.id)} style={{ background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', fontSize: '0.8rem' }}>削除</button>
-            </div>
+
+              <div style={{
+                display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '20px', 
+                borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px', width: '100%' 
+              }}>
+                <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#fff' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={formData.is_pickup}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                    onChange={(e) => setFormData({...formData, is_pickup: e.target.checked})}
+                  />
+                  Pick Up
+                </label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  {editingId && (
+                    <button type="button" onClick={cancelEdit} style={{ background: 'none', color: '#aaa', border: 'none', cursor: 'pointer', padding: '0 10px' }}>
+                      キャンセル
+                    </button>
+                  )}
+                <ActionButton 
+                  type="submit" 
+                  text={editingId ? '更新する' : '記録'} 
+                />
+                </div>
+              </div>
+            </form>
+          </section>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#666', border: '2px dashed #333', borderRadius: '15px', marginBottom: '40px' }}>
+            ゲームを選択すると記録が可能になります
           </div>
-        ))}
+        )}
+
+        {/* 履歴リスト */}
+        <h2 style={{ fontSize: '1.2rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ width: '12px', height: '12px', backgroundColor: currentTheme.accent, borderRadius: '50%' }}></span>
+          LOGS
+        </h2>
+
+<CyberPlate>
+        <div style={{ display: 'grid', gap: '12px' }}>
+          {filteredLogs.map((log) => (
+            <div key={log.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(10px)',
+              padding: '15px 20px', borderRadius: '10px',
+              borderLeft: `4px solid ${log.is_pickup ? '#FFD700' : '#4facfe'}`,
+              boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+            }}>
+              <div>
+                <div style={{ fontSize: '0.7rem', color: '#777', marginBottom: '4px' }}>
+                  {new Date(log.created_at).toLocaleDateString()} · {log.game_name}
+                </div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {log.item_name}
+                  <span style={{ fontSize: '0.8rem', color: log.is_pickup ? '#FFD700' : '#aaa', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
+                    {log.pull_count}連 {log.is_pickup ? 'PICKUP' : '通常'}
+                  </span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={() => startEdit(log)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.8rem' }}>編集</button>
+                <button onClick={() => handleDelete(log.id)} style={{ background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', fontSize: '0.8rem' }}>削除</button>
+              </div>
+            </div>
+          ))}
+        </div>
+</CyberPlate>
       </div>
     </div>
   )
+}
+
+// サイバー風のプレート部品
+function CyberPlate({ title, children }) {
+  return (
+    <div style={{
+      backgroundColor: '#3b3b3b', // プレート自体のベース色（暗いグレー）
+      border: '2px solid #555',   // プレートの外枠
+      borderRadius: '8px',        // 角を少し丸くする
+      overflow: 'hidden',         // 中身が枠からはみ出ないようにする
+      position: 'relative',
+      marginBottom: '20px',
+      boxShadow: '0 8px 16px rgba(0,0,0,0.5)' // 浮き出ているような影
+    }}>
+      
+      {/* 左上のスラッシュ装飾（疑似的にCSSで作成） */}
+      <div style={{
+        position: 'absolute', top: '5px', left: '10px',
+        color: '#555', fontSize: '0.6rem', fontWeight: 'bold', fontStyle: 'italic'
+      }}>
+        ●
+      </div>
+
+      {/* ヘッダー部分（赤黒いグラデーション） */}
+      <div style={{
+        background: 'linear-gradient(90deg, #4a1c1c 0%, #1a1a1a 100%)', // 左から右へのグラデーション
+        padding: '15px 20px 10px 40px', // 左側にスラッシュ用の余白を開ける
+        borderBottom: '1px solid #333'
+      }}>
+        <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#eee' }}>{title}</span>
+      </div>
+
+      {/* 中身のコンテンツ */}
+      <div style={{ padding: '20px' }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+
+// ZZZ風の黄色いアクションボタン
+function ActionButton({ text, onClick, type="button", style={} }) {
+  return (
+    <button 
+      onClick={onClick}
+      style={{
+        backgroundColor: '#ffd700', // ZZZの特徴的な黄色
+        color: '#000',              // 文字は黒
+        border: 'none',
+        borderRadius: '20px',       // かなり丸みを帯びた角
+        padding: '8px 20px',
+        fontWeight: 'bold',
+        fontSize: '0.9rem',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '5px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+        ...style
+      }}>
+      {text}
+    </button>
+  );
 }
 
 
