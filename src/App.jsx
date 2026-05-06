@@ -28,7 +28,93 @@ function App() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [selectedType, setSelectedType] = useState('キャラ');
-  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [billingLogs, setBillingLogs] = useState([]); 
+  const [editingBillingId, setEditingBillingId] = useState(null);
+
+
+  //
+  const [billingInput, setBillingInput] = useState(''); // フォームに入力中の金額
+  const [totalBilling, setTotalBilling] = useState(0);  // 計算された累計課金額
+
+  // ▼ 1. 取得関数を書き換え
+  const fetchBilling = async () => {
+    // select('*') にして、IDや作成日時もすべて取得する。新しい順に並べる
+    let query = supabase.from('billing_logs').select('*').order('created_at', { ascending: false });
+
+    if (selectedGame !== 'すべて') {
+      query = query.eq('game_name', selectedGame);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('課金取得エラー:', error);
+    } else {
+      setBillingLogs(data); // ★ 取得したリストをそのまま保存
+      const total = data.reduce((sum, log) => sum + log.amount, 0);
+      setTotalBilling(total);
+    }
+  };
+
+  // ▼ 2. ゲームが切り替わった時に課金額も自動で再取得する
+  useEffect(() => {
+    // ログインしていれば「すべて」の時でも計算を実行する
+    if (session) {
+      fetchBilling();
+    } else {
+      setTotalBilling(0);
+    }
+  }, [session, selectedGame]);
+
+  // ▼ 課金額を保存・更新する処理
+  const handleBillingSubmit = async (e) => {
+    e.preventDefault();
+    if (!billingInput || isNaN(billingInput)) return;
+
+    const amount = parseInt(billingInput, 10);
+
+    if (editingBillingId) {
+      // 【更新】の処理
+      const { error } = await supabase.from('billing_logs').update({ amount }).eq('id', editingBillingId);
+      if (error) alert('更新エラー: ' + error.message);
+      else {
+        setEditingBillingId(null);
+        setBillingInput('');
+        fetchBilling();
+      }
+    } else {
+      // 【新規追加】の処理
+      const { error } = await supabase.from('billing_logs').insert([{ game_name: selectedGame, amount }]);
+      if (error) alert('エラーが発生しました: ' + error.message);
+      else {
+        setBillingInput('');
+        fetchBilling();
+      }
+    }
+  };
+
+  // ▼ 課金データを削除する処理
+  const handleBillingDelete = async (id) => {
+    if (!confirm('この課金記録を削除してもよろしいですか？')) return;
+    const { error } = await supabase.from('billing_logs').delete().eq('id', id);
+    if (error) alert('削除に失敗しました: ' + error.message);
+    else fetchBilling();
+  };
+
+  // ▼ 編集を開始する処理
+  const startBillingEdit = (log) => {
+    setEditingBillingId(log.id);
+    setBillingInput(log.amount.toString()); // 入力欄に今の金額をセットする
+  };
+
+  // ▼ 編集をキャンセルする処理
+  const cancelBillingEdit = () => {
+    setEditingBillingId(null);
+    setBillingInput('');
+  };
+
+
   // 現在選ばれているゲームのテーマを取得
   const currentTheme = GAME_THEMES[selectedGame] || GAME_THEMES['すべて'];
 
@@ -261,12 +347,19 @@ function App() {
       is_pickup: true });
   };
 
+
 return (
     <div style={{
-      backgroundColor: '#121212', // ベースの背景色
+      backgroundColor: '#0a0a0a',
       color: 'white',
       minHeight: '100vh',
       fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+
+      // ▼ ここから追加：全体を中央に配置し、影をつける
+      maxWidth: '480px',          // ここも480pxに
+      margin: '0 auto',           // 中央寄せ
+      boxShadow: '0 0 30px rgba(0,0,0,0.8)', // アプリ画面の左右に影をつける
+      position: 'relative'
     }}>
       
       {/* 2. 新しく追加した「上部の背景画像エリア」 */}
@@ -287,7 +380,7 @@ return (
         }}></div>
 
         {/* 3. 上部のコンテンツ（ヘッダーからPU率まで） */}
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', position: 'relative', zIndex: 1 }}>
+        <div style={{ maxWidth: '480px', margin: '0 auto', padding: '20px', position: 'relative', zIndex: 1 }}>
 
           {/* ヘッダーエリア */}
           <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -394,14 +487,32 @@ return (
             </div>
           </div>
 
+          {/* 課金額を確認するボタン */}
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <button 
+              onClick={() => setIsModalOpen(true)} // ★押すとウィンドウが開く(trueになる)
+              style={{
+                backgroundColor: 'transparent',
+                border: `2px solid ${currentTheme.accent}`,
+                color: currentTheme.accent,
+                padding: '8px 24px',
+                borderRadius: '20px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              💰 課金額を確認
+            </button>
+          </div>
+
         </div>
       </div>
       {/* --- 上部エリアここまで --- */}
 
 
       {/* 4. 下部エリア（フォームと履歴） */}
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-
+      <div style={{ maxWidth: '480px', margin: '0 auto', padding: '20px' }}>
         {/* 入力フォームセクション */}
         {selectedGame !== 'すべて' ? (
           <section style={{
@@ -477,7 +588,7 @@ return (
           LOGS
         </h2>
 
-<CyberPlate>
+        <CyberPlate>
         <div style={{ display: 'grid', gap: '12px' }}>
           {filteredLogs.map((log) => (
             <div key={log.id} style={{
@@ -505,8 +616,118 @@ return (
             </div>
           ))}
         </div>
-</CyberPlate>
+        </CyberPlate>
       </div>
+
+      {/* ▼ ここに追加：課金確認用のモーダルウィンドウ */}
+      {isModalOpen && (
+        <div style={{
+          position: 'fixed', // 画面全体に固定
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)', // 背景を真っ黒の半透明にする
+          zIndex: 9999, // 一番手前に表示する
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          {/* ウィンドウのパネル本体 */}
+          <div style={{
+            backgroundColor: '#1a1a1a',
+            border: `1px solid ${currentTheme.accent}`,
+            borderRadius: '15px',
+            padding: '30px',
+            width: '85%',
+            maxWidth: '350px', // パネルが大きくなりすぎないように制限
+            textAlign: 'center',
+            boxShadow: `0 0 30px ${currentTheme.accent}44` // テーマカラーでぼんやり光らせる
+          }}>
+
+            {/* タイトルの出し分け */}
+            <h2 style={{ marginTop: 0, color: currentTheme.accent, fontSize: '1.2rem' }}>
+              {selectedGame === 'すべて' ? '全ゲームの累計課金額' : `${selectedGame} の累計課金額`}
+            </h2>
+            
+            <div style={{ fontSize: '2.5rem', fontWeight: 'bold', margin: '20px 0', color: '#fff' }}>
+              ¥ {totalBilling.toLocaleString()}
+            </div>
+            
+            {selectedGame !== 'すべて' ? (
+              <form onSubmit={handleBillingSubmit} style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
+                <input 
+                  type="number" 
+                  value={billingInput} 
+                  onChange={(e) => setBillingInput(e.target.value)} 
+                  placeholder="例: 12000" 
+                  required
+                  style={{ 
+                    padding: '10px', borderRadius: '6px', border: '1px solid #555', 
+                    background: '#222', color: '#fff', width: '120px', fontSize: '1rem'
+                  }}
+                />
+                <button type="submit" style={{ 
+                  padding: '10px 20px', backgroundColor: currentTheme.accent, color: '#000', 
+                  border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' 
+                }}>
+                  {editingBillingId ? '更新' : '追加'} {/* ★編集中はボタンの名前を変える */}
+                </button>
+                {editingBillingId && (
+                  <button type="button" onClick={cancelBillingEdit} style={{ background: 'none', color: '#aaa', border: 'none', cursor: 'pointer' }}>
+                    キャンセル
+                  </button>
+                )}
+              </form>
+            ) : (
+              <p style={{ color: '#aaa', fontSize: '0.8rem', marginBottom: '20px' }}>
+                {/*※課金額を追加・編集するには特定のゲームタブを選択してください*/}
+              </p>
+            )}
+
+            {/* ▼ ここを追加：課金履歴のリスト表示（スクロールできるようにする） */}
+            <div style={{ 
+              maxHeight: '200px', overflowY: 'auto', marginBottom: '20px', 
+              borderTop: '1px solid #444', paddingTop: '10px', textAlign: 'left' 
+            }}>
+              {billingLogs.map(log => (
+                <div key={log.id} style={{ 
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                  padding: '10px', borderBottom: '1px solid #333' 
+                }}>
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: '#888' }}>
+                      {new Date(log.created_at).toLocaleDateString()} {selectedGame === 'すべて' && `· ${log.game_name}`}
+                    </div>
+                    <div style={{ fontSize: '1.1rem', color: '#fff' }}>¥ {log.amount.toLocaleString()}</div>
+                  </div>
+                  
+                  {/* 「すべて」タブ以外の時だけ、編集・削除ボタンを表示する */}
+                  {selectedGame !== 'すべて' && (
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button onClick={() => startBillingEdit(log)} style={{ background: 'none', border: 'none', color: currentTheme.accent, cursor: 'pointer', fontSize: '0.8rem' }}>編集</button>
+                      <button onClick={() => handleBillingDelete(log.id)} style={{ background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', fontSize: '0.8rem' }}>削除</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {billingLogs.length === 0 && <div style={{ color: '#666', textAlign: 'center', padding: '20px' }}>履歴はありません</div>}
+            </div>
+
+            {/* 閉じるボタン */}
+            <button 
+              onClick={() => {
+                setIsModalOpen(false);
+                cancelBillingEdit(); // 閉じる時に編集状態もリセットしておく
+              }}
+              style={{
+                backgroundColor: '#444', color: '#fff', border: 'none',
+                padding: '10px 30px', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold'
+              }}
+            >
+              閉じる
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
