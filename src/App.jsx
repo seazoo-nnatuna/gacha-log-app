@@ -19,6 +19,7 @@ function App() {
   const [formData, setFormData] = useState({
     game_name: 'ゼンレスゾーンゼロ',
     item_name: '',
+    item_type: 'キャラ',
     pull_count: 0,
     rarity: 5,
     is_pickup: true
@@ -26,6 +27,7 @@ function App() {
   const [selectedGame, setSelectedGame] = useState('すべて');
   const [isSignUp, setIsSignUp] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [selectedType, setSelectedType] = useState('すべて');
   
   // 現在選ばれているゲームのテーマを取得
   const currentTheme = GAME_THEMES[selectedGame] || GAME_THEMES['すべて'];
@@ -169,9 +171,13 @@ function App() {
 
   // --- 集計ロジック ---
   // 現在の選択に合わせて絞り込まれたログ
-  const filteredLogs = logs.filter(log => 
-    selectedGame === 'すべて' || log.game_name === selectedGame
-  );    
+  const filteredLogs = logs.filter(log => {
+    const matchGame = selectedGame === 'すべて' || log.game_name === selectedGame;
+    const type = log.item_type || 'キャラ'; // 過去のデータ(null)は「キャラ」扱い
+    const matchType = selectedType === 'すべて' || type === selectedType;
+    
+    return matchGame && matchType;
+  });    
 
   // 1. 全体の合計連数
   const totalPulls = filteredLogs.reduce((sum, log) => sum + log.pull_count, 0);
@@ -234,6 +240,7 @@ function App() {
     setFormData({
       game_name: log.game_name,
       item_name: log.item_name,
+      item_type: log.item_type || 'キャラ',
       pull_count: log.pull_count,
       rarity: log.rarity,
       is_pickup: log.is_pickup
@@ -244,7 +251,13 @@ function App() {
 
   const cancelEdit = () => {
     setEditingId(null);
-    setFormData({ game_name: selectedGame !== 'すべて' ? selectedGame : 'ゼンレスゾーンゼロ', item_name: '', pull_count: 0, rarity: 5, is_pickup: true });
+    setFormData({
+      game_name: selectedGame !== 'すべて' ? selectedGame : 'ゼンレスゾーンゼロ',
+      item_name: '',
+      item_type: 'キャラ',
+      pull_count: 0,
+      rarity: 5,
+      is_pickup: true });
   };
 
 return (
@@ -309,6 +322,30 @@ return (
               </button>
             ))}
           </nav>
+
+          {/* ▼ 新しく追加する「キャラ / 武器」切り替えタブ */}
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '30px' }}>
+            {['すべて', 'キャラ', '武器'].map((type) => (
+              <button
+                key={type}
+                onClick={() => setSelectedType(type)}
+                style={{
+                  padding: '6px 20px',
+                  borderRadius: '20px',
+                  // 選択されている時は枠線をテーマカラーに、そうでない時はグレーに
+                  border: selectedType === type ? `2px solid ${currentTheme.accent}` : '2px solid #555',
+                  backgroundColor: selectedType === type ? 'rgba(255,255,255,0.1)' : 'transparent',
+                  color: selectedType === type ? currentTheme.accent : '#aaa',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '0.9rem',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
 
           {/* 集計ダッシュボード */}
           <div style={{ 
@@ -379,6 +416,28 @@ return (
                   onChange={(e) => setFormData({...formData, pull_count: parseInt(e.target.value)})} 
                   style={{ width: '100%', padding: '12px', background: '#222', border: '1px solid #444', borderRadius: '6px', color: '#fff', boxSizing: 'border-box' }} 
                 />
+              </div>
+              
+              {/* ▼ ここを追加：キャラか武器かの選択 */}
+              <div style={{ width: '100%', display: 'flex', gap: '20px', marginBottom: '5px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: '#fff' }}>
+                  <input
+                    type="radio"
+                    value="キャラ"
+                    checked={formData.item_type === 'キャラ'}
+                    onChange={(e) => setFormData({ ...formData, item_type: e.target.value })}
+                  />
+                  キャラ
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: '#fff' }}>
+                  <input
+                    type="radio"
+                    value="武器"
+                    checked={formData.item_type === '武器'}
+                    onChange={(e) => setFormData({ ...formData, item_type: e.target.value })}
+                  />
+                  武器（音動機・光円錐など）
+                </label>
               </div>
 
               <div style={{
