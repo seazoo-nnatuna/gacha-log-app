@@ -27,7 +27,7 @@ function App() {
   const [selectedGame, setSelectedGame] = useState('すべて');
   const [isSignUp, setIsSignUp] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [selectedType, setSelectedType] = useState('すべて');
+  const [selectedType, setSelectedType] = useState('キャラ');
   
   // 現在選ばれているゲームのテーマを取得
   const currentTheme = GAME_THEMES[selectedGame] || GAME_THEMES['すべて'];
@@ -68,11 +68,6 @@ function App() {
       setLogs([]);
     }
   }, [session]); // session が変わる（ログイン・ログアウトする）たびに実行する
-  /*
-  useEffect(() => {
-    fetchLogs()
-  }, [])
-  */
 
   useEffect(() => {
     // 「すべて」以外のゲームが選ばれた時だけ、フォームのゲーム名も書き換える
@@ -125,11 +120,17 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    // 送信する直前に、現在開いているタブの種類（キャラ or 武器）を確実に合体させる
+    const submitData = {
+      ...formData,
+      item_type: selectedType
+    };    
+
     if (editingId) {
       // 【更新】の処理
       const { error } = await supabase
         .from('gacha_logs')
-        .update(formData)
+        .update(submitData)
         .eq('id', editingId);
 
       if (error) alert('更新エラー: ' + error.message);
@@ -140,7 +141,7 @@ function App() {
         fetchLogs();
       }
     } else {
-      const { error } = await supabase.from('gacha_logs').insert([formData])
+      const { error } = await supabase.from('gacha_logs').insert([submitData])
 
       if (error) {
         alert('エラーが発生しました: ' + error.message)
@@ -174,7 +175,7 @@ function App() {
   const filteredLogs = logs.filter(log => {
     const matchGame = selectedGame === 'すべて' || log.game_name === selectedGame;
     const type = log.item_type || 'キャラ'; // 過去のデータ(null)は「キャラ」扱い
-    const matchType = selectedType === 'すべて' || type === selectedType;
+    const matchType = type === selectedType;
     
     return matchGame && matchType;
   });    
@@ -254,7 +255,7 @@ function App() {
     setFormData({
       game_name: selectedGame !== 'すべて' ? selectedGame : 'ゼンレスゾーンゼロ',
       item_name: '',
-      item_type: 'キャラ',
+      item_type: selectedType,
       pull_count: 0,
       rarity: 5,
       is_pickup: true });
@@ -323,28 +324,45 @@ return (
             ))}
           </nav>
 
-          {/* ▼ 新しく追加する「キャラ / 武器」切り替えタブ */}
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '30px' }}>
-            {['すべて', 'キャラ', '武器'].map((type) => (
-              <button
-                key={type}
-                onClick={() => setSelectedType(type)}
-                style={{
-                  padding: '6px 20px',
-                  borderRadius: '20px',
-                  // 選択されている時は枠線をテーマカラーに、そうでない時はグレーに
-                  border: selectedType === type ? `2px solid ${currentTheme.accent}` : '2px solid #555',
-                  backgroundColor: selectedType === type ? 'rgba(255,255,255,0.1)' : 'transparent',
-                  color: selectedType === type ? currentTheme.accent : '#aaa',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  fontSize: '0.9rem',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {type}
-              </button>
-            ))}
+          {/* ▼ 板状になった「キャラ / 武器」切り替えタブ */}
+          <div style={{ 
+            display: 'flex', 
+            // タブの下に敷く、テーマカラーの長いライン
+            borderBottom: `3px solid ${currentTheme.accent}`, 
+            marginBottom: '20px',
+            paddingLeft: '10px' // 左に少し余白を開ける
+          }}>
+            {['キャラ', '武器'].map((type) => {
+              const isActive = selectedType === type; // 選ばれているかどうか
+              
+              return (
+                <button
+                  key={type}
+                  onClick={() => setSelectedType(type)}
+                  style={{
+                    padding: '12px 30px',
+                    // 選ばれている時はテーマカラー、選ばれていない時は半透明の黒
+                    backgroundColor: isActive ? currentTheme.accent : 'rgba(0, 0, 0, 0.6)',
+                    color: isActive ? '#000' : '#aaa',
+                    border: 'none',
+                    // ★ここがポイント！ 左上と右上の角だけを丸くする (左上 右上 右下 左下)
+                    borderRadius: '12px 12px 0 0', 
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '1rem',
+                    transition: 'all 0.2s',
+                    marginRight: '4px', // タブ同士のわずかな隙間
+                    
+                    // 下のライン(borderBottom)とシームレスに繋げるための微調整
+                    position: 'relative',
+                    top: '3px', // 下の枠線に被せるように数ピクセル下げる
+                    zIndex: isActive ? 2 : 1, // アクティブなタブを一番手前に持ってくる
+                  }}
+                >
+                  {type}
+                </button>
+              );
+            })}
           </div>
 
           {/* 集計ダッシュボード */}
@@ -418,27 +436,7 @@ return (
                 />
               </div>
               
-              {/* ▼ ここを追加：キャラか武器かの選択 */}
-              <div style={{ width: '100%', display: 'flex', gap: '20px', marginBottom: '5px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: '#fff' }}>
-                  <input
-                    type="radio"
-                    value="キャラ"
-                    checked={formData.item_type === 'キャラ'}
-                    onChange={(e) => setFormData({ ...formData, item_type: e.target.value })}
-                  />
-                  キャラ
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: '#fff' }}>
-                  <input
-                    type="radio"
-                    value="武器"
-                    checked={formData.item_type === '武器'}
-                    onChange={(e) => setFormData({ ...formData, item_type: e.target.value })}
-                  />
-                  武器（音動機・光円錐など）
-                </label>
-              </div>
+
 
               <div style={{
                 display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '20px', 
