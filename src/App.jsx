@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react'
-import { supabase } from './supabase'
+import { useState } from 'react';
+import { useAuth } from './hooks/useAuth'
+import { GAME_THEMES } from './constants/gameThemes'
+import { useBilling } from './hooks/useBilling';
+import { useGacha } from './hooks/useGacha';
 
 import StatCard from './components/StatCard'
 import ActionButton from './components/ActionButton'
 import BillingModal from './components/BillingModal'
-import { GAME_THEMES } from './constants/gameThemes'
-import { useBilling } from './hooks/useBilling';
-import { useGacha } from './hooks/useGacha';
 
 import AuthScreen from './components/AuthScreen'
 import GachaForm from './components/GachaForm'
@@ -18,12 +18,17 @@ import Header from './components/Header'
 import GameTabs from './components/GameTabs'
 import TypeTabs from './components/TypeTabs'
 
+
 function App()
 {
-  const [session, setSession] = useState(null);
   const [selectedGame, setSelectedGame] = useState('すべて');
-  const [isSignUp, setIsSignUp] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 認証ロジックを呼び出し
+  const
+  {
+    session, isSignUp, setIsSignUp, handleAuth, handleSignOut
+  } = useAuth();
 
   // 課金ロジックの呼び出し
   const
@@ -43,77 +48,10 @@ function App()
   // 現在選ばれているゲームのテーマを取得
   const currentTheme = GAME_THEMES[selectedGame] || GAME_THEMES['すべて'];
 
-  // --- 1. ログイン状態の監視 ---
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    // 「すべて」以外のゲームが選ばれた時だけ、フォームのゲーム名も書き換える
-    if (selectedGame !== 'すべて') {
-      setFormData(prev => ({
-        ...prev,
-        game_name: selectedGame
-      }));
-    }
-  }, [selectedGame]); // selectedGame が変わるたびに実行される
-
-  const handleAuth = async (e) => {
-    e.preventDefault();
-    const email = e.target.email.value;
-    const password = e.target.password.value;
-
-    console.log("ボタンが押されました");
-
-    if (isSignUp) {
-        // 【新規登録】の処理
-        const { error } = await supabase.auth.signUp({ 
-          email, 
-          password,
-          options: {
-            // 先ほど設定した「Confirm Email」がOFFなら、これですぐログイン状態になります
-            emailRedirectTo: window.location.origin,
-          }
-        });
-        if (error) {
-          alert("登録失敗: " + error.message);
-        } else {
-          alert("確認メールを送りました（認証OFFならそのままログインできます）");
-        }
-      } else {
-        // 【ここをチェック！】ログインの処理
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          alert("ログイン失敗: " + error.message);
-        } else {
-          console.log("ログイン成功！", data);
-      // 成功すれば、useEffectの監視によって自動的に session が更新され、画面が切り替わります
-        }
-      }
-  };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  // --- 4. 表示の切り替え ---
-  // ログインしていない時
-  if (!session) {
-    return (
-      <AuthScreen 
-        isSignUp={isSignUp}
-        setIsSignUp={setIsSignUp}
-        handleAuth={handleAuth}
-      />
-    );
+  // ログインしていない時の表示
+  if (!session)
+  {
+    return <AuthScreen isSignUp={isSignUp} setIsSignUp={setIsSignUp} handleAuth={handleAuth} />;
   }
 
 return (

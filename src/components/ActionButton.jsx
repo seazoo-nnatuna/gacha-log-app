@@ -11,18 +11,18 @@ function ActionButton({ text, onClick, type = "button", style = {} })
         color: '#000',
         border: 'none',
         borderRadius: '20px',       
-        padding: '8px 20px',
+        padding: '6px 16px',
         fontWeight: 'bold',
-        fontSize: '0.9rem',
+        fontSize: '0.8rem',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
-        gap: '5px',
+        gap: '4px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-        ...style // 呼び出し元から特別な色などを指定されたら上書きする
+        ...style
       }}
     >
-      <span style={{ fontSize: '1.2rem' }}></span>
+      {text !== 'ログアウト' && <span style={{ fontSize: '1rem' }}></span>} {/* ログアウトの時は矢印を出さない微調整 */}
       {text}
     </button>
   );
