@@ -15,10 +15,14 @@ function GachaForm({ selectedGame, formData, setFormData, handleSubmit, editingI
   // フォームの表示
   return (
     <section style={{
-      background: 'rgba(255, 255, 255, 0.05)',
+      // 上から下へ少し暗くなるグラデーション
+      background: 'linear-gradient(180deg, rgba(40, 40, 40, 0.7) 0%, rgba(20, 20, 20, 0.8) 100%)',
+      backdropFilter: 'blur(12px)',
       padding: '25px',
-      borderRadius: '15px',
-      border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: '12px',
+      border: '1px solid rgba(255,255,255,0.08)',
+      // 内側に白い細い線を入れ、外側に影を落とす
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), 0 8px 20px rgba(0,0,0,0.5)',
       marginBottom: '40px'
     }}>
       <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '1rem' }}>
