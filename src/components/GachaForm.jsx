@@ -34,16 +34,41 @@ function GachaForm({ selectedGame, selectedType, formData, setFormData, handleSu
       </h3>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
 
+        {/* ブラウザ標準の▼を「透明」にして機能だけ残す */}
+        <style>{`
+          .custom-datalist::-webkit-calendar-picker-indicator {
+            opacity: 0;
+            cursor: pointer;
+          }
+        `}</style>
+
         <div style={{ flex: '2', minWidth: '200px' }}>
           <label style={{ fontSize: '0.8rem', color: '#aaa', display: 'block', marginBottom: '5px' }}>獲得アイテム / キャラ</label>
           <input 
+            className="custom-datalist"
             type="text" 
             list="item-suggestions" 
             value={formData.item_name} 
             onChange={(e) => setFormData({...formData, item_name: e.target.value})} 
-            placeholder="名前を入力" 
+            placeholder="名前を入力・または選択" 
             style={{ width: '100%', padding: '8px 12px', fontSize: '16px', background: '#222', border: '1px solid #444', borderRadius: '4px', color: '#fff', boxSizing: 'border-box' }} 
-            required 
+            required
+            style={{ 
+              width: '100%', 
+              /* ★右側の余白を広げて、▼が被らないようにする */
+              padding: '8px 30px 8px 12px', 
+              fontSize: '16px', 
+              background: '#222', 
+              border: '1px solid #444', 
+              borderRadius: '4px', 
+              color: '#fff', 
+              boxSizing: 'border-box',
+              /* グレーの▼アイコンを背景にセット */
+              backgroundImage: `url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23aaaaaa"><path d="M7 10l5 5 5-5z"/></svg>')`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 8px center',
+              backgroundSize: '24px'
+            }}
           />
           <datalist id="item-suggestions">
             {suggestions.map((name, index) => (
