@@ -39,8 +39,8 @@ function GachaForm({ selectedGame, selectedType, formData, setFormData, handleSu
           .custom-datalist::-webkit-calendar-picker-indicator {
             opacity: 0;
             cursor: pointer;
-            width: 20px;
-            height: 20px;
+            width: 30px;
+            height: 30px;
           }
         `}</style>
 
