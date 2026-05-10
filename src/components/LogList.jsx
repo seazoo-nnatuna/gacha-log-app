@@ -6,11 +6,6 @@ function LogList({ filteredLogs, currentTheme, startEdit, handleDelete })
   return (
     <>
       {/* 履歴リストの見出し */}
-      <h2 style={{ fontSize: '1.2rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ width: '12px', height: '12px', backgroundColor: currentTheme.accent, borderRadius: '50%' }}></span>
-        LOGS
-      </h2>
-
       <CyberPlate title="ガチャ履歴">
         <div style={{ display: 'grid', gap: '12px' }}>
           {filteredLogs.map((log) => (
