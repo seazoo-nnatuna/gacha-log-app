@@ -18,7 +18,7 @@ function GachaForm({ selectedGame, selectedType, formData, setFormData, handleSu
 
   // フォームの表示
   return (
-    <section style={{
+    <section id="gacha-form" style={{
       // 上から下へ少し暗くなるグラデーション
       background: 'linear-gradient(180deg, rgba(40, 40, 40, 0.7) 0%, rgba(20, 20, 20, 0.8) 100%)',
       backdropFilter: 'blur(12px)',

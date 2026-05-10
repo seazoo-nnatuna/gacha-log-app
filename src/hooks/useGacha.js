@@ -106,7 +106,17 @@ export const useGacha = (session, selectedGame) =>
       rarity: log.rarity,
       is_pickup: log.is_pickup
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // スクロール処理
+    // 少しだけ時間を遅らせる（50ミリ秒）   Reactの画面更新が確実に終わってからスクロールさせる
+    setTimeout(() =>
+    {
+      const formElement = document.getElementById('gacha-form');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+
   };
 
   const cancelEdit = () =>
