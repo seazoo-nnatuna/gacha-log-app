@@ -36,7 +36,7 @@ function GachaForm({ selectedGame, formData, setFormData, handleSubmit, editingI
             value={formData.item_name} 
             onChange={(e) => setFormData({...formData, item_name: e.target.value})} 
             placeholder="名前を入力" 
-            style={{ width: '100%', padding: '8px 12px', fontSize: '0.9rem', background: '#222', border: '1px solid #444', borderRadius: '4px', color: '#fff', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '8px 12px', fontSize: '16px', background: '#222', border: '1px solid #444', borderRadius: '4px', color: '#fff', boxSizing: 'border-box' }}
             required 
           />
         </div>
@@ -46,7 +46,7 @@ function GachaForm({ selectedGame, formData, setFormData, handleSubmit, editingI
             type="number" 
             value={formData.pull_count} 
             onChange={(e) => setFormData({...formData, pull_count: parseInt(e.target.value)})} 
-            style={{ width: '100%', padding: '8px 12px', fontSize: '0.9rem', background: '#222', border: '1px solid #444', borderRadius: '4px', color: '#fff', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '8px 12px', fontSize: '16px', background: '#222', border: '1px solid #444', borderRadius: '4px', color: '#fff', boxSizing: 'border-box' }}
           />
         </div>
         

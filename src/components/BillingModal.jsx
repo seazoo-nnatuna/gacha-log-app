@@ -58,7 +58,7 @@ function BillingModal({
               required
               style={{ 
                 padding: '10px', borderRadius: '6px', border: '1px solid #555', 
-                background: '#222', color: '#fff', width: '120px', fontSize: '1rem'
+                background: '#222', color: '#fff', width: '120px', fontSize: '16px'
               }}
             />
             <button type="submit" style={{ 
