@@ -130,6 +130,7 @@ return (
         {/* ▼ 入力フォームセクションをこれ1行に置き換え！ */}
         <GachaForm 
           selectedGame={selectedGame}
+          selectedType={selectedType}
           formData={formData}
           setFormData={setFormData}
           handleSubmit={handleSubmit}

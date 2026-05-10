@@ -1,7 +1,8 @@
 import React from 'react';
+import { ITEM_LISTS } from '../constants/itemLists';
 import ActionButton from './ActionButton';
 
-function GachaForm({ selectedGame, formData, setFormData, handleSubmit, editingId, cancelEdit }) 
+function GachaForm({ selectedGame, selectedType, formData, setFormData, handleSubmit, editingId, cancelEdit }) 
 {
   // ゲームが選択されていない時の表示
   if (selectedGame === 'すべて') {
@@ -11,6 +12,9 @@ function GachaForm({ selectedGame, formData, setFormData, handleSubmit, editingI
       </div>
     );
   }
+
+  // 現在選ばれているゲームのリストを取得する
+  const suggestions = ITEM_LISTS[selectedGame]?.[selectedType] || [];
 
   // フォームの表示
   return (
@@ -29,17 +33,25 @@ function GachaForm({ selectedGame, formData, setFormData, handleSubmit, editingI
         {editingId ? '編集中...' : '結果を記録'}
       </h3>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
+
         <div style={{ flex: '2', minWidth: '200px' }}>
           <label style={{ fontSize: '0.8rem', color: '#aaa', display: 'block', marginBottom: '5px' }}>獲得アイテム / キャラ</label>
           <input 
             type="text" 
+            list="item-suggestions" 
             value={formData.item_name} 
             onChange={(e) => setFormData({...formData, item_name: e.target.value})} 
             placeholder="名前を入力" 
-            style={{ width: '100%', padding: '8px 12px', fontSize: '16px', background: '#222', border: '1px solid #444', borderRadius: '4px', color: '#fff', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '8px 12px', fontSize: '16px', background: '#222', border: '1px solid #444', borderRadius: '4px', color: '#fff', boxSizing: 'border-box' }} 
             required 
           />
+          <datalist id="item-suggestions">
+            {suggestions.map((name, index) => (
+              <option key={index} value={name} />
+            ))}
+          </datalist>
         </div>
+
         <div style={{ flex: '1', minWidth: '80px' }}>
           <label style={{ fontSize: '0.8rem', color: '#aaa', display: 'block', marginBottom: '5px' }}>連数</label>
           <input 
