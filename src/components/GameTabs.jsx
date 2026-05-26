@@ -9,8 +9,8 @@ function GameTabs({ selectedGame, setSelectedGame, currentTheme }) {
           key={game}
           onClick={() => setSelectedGame(game)}
           style={{
-            padding: '6px 14px', // ★上下10px→6px、左右20px→14pxにスッキリ
-            borderRadius: '20px', // ★カプセル型にしてスタイリッシュに
+            padding: '6px 14px',
+            borderRadius: '20px',
             border: selectedGame === game ? `1px solid ${currentTheme.accent}` : '1px solid rgba(255,255,255,0.2)',
             backgroundColor: selectedGame === game ? `${currentTheme.accent}22` : 'transparent', // うっすら光る背景に
             color: selectedGame === game ? currentTheme.accent : '#aaa',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 function BillingModal({
   isOpen,               // ウィンドウが開いているかどうかの判定
@@ -16,7 +16,43 @@ function BillingModal({
   cancelBillingEdit     // 編集をキャンセルする処理
 })
 {
-  // isOpen が false（閉じる状態）なら、何も表示しない（nullを返す）
+  const [selectedMonth, setSelectedMonth] = useState('すべて');
+
+  // 履歴から「存在する月」のリストを作成（例: ['2023-10', '2023-09']）降順ソート
+  const availableMonths = useMemo(() =>
+  {
+    const months = new Set();
+    billingLogs.forEach(log =>
+    {
+      const d = new Date(log.created_at);
+      const monthStr = `${d.getFullYear()}年${String(d.getMonth() + 1).padStart(2, '0')}月`;
+      months.add(monthStr);
+    });
+    // 降順（新しい順）に並び替え
+    return Array.from(months).sort().reverse();
+  }, [billingLogs]);
+
+  // 選択された月に応じてログをフィルタリング
+  const filteredLogs = useMemo(() =>
+  {
+    if (selectedMonth === 'すべて') return billingLogs;
+    
+    return billingLogs.filter(log =>
+    {
+      const d = new Date(log.created_at);
+      const monthStr = `${d.getFullYear()}年${String(d.getMonth() + 1).padStart(2, '0')}月`;
+      return monthStr === selectedMonth;
+    });
+  }, [billingLogs, selectedMonth]);
+
+
+  // フィルタリングされたログから合計金額を計算
+  const displayTotal = useMemo(() =>
+  {
+    return filteredLogs.reduce((sum, log) => sum + log.amount, 0);
+  }, [filteredLogs]);
+
+
   if (!isOpen) return null;
 
   return (
@@ -40,14 +76,38 @@ function BillingModal({
         boxShadow: `0 0 30px ${currentTheme.accent}44`
       }}>
 
-        <h2 style={{ marginTop: 0, color: currentTheme.accent, fontSize: '1.2rem' }}>
-          {selectedGame === 'すべて' ? '全ゲームの累計課金額' : `${selectedGame} の累計課金額`}
+        <h2 style={{ marginTop: 0, color: currentTheme?.accent || '#fff', fontSize: '1.2rem' }}>
+          {selectedGame === 'すべて' ? '全ゲームの課金額' : `${selectedGame} の課金額`}
         </h2>
-        
+
+        {/* 月の絞り込みセレクトボックス */}
+        {availableMonths.length > 0 && (
+          <div style={{ marginBottom: '10px' }}>
+            <select 
+              value={selectedMonth} 
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              style={{
+                padding: '5px 10px',
+                borderRadius: '5px',
+                background: '#333',
+                color: '#fff',
+                border: '1px solid #555',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="すべて">全期間</option>
+              {availableMonths.map(month => (
+                <option key={month} value={month}>{month}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* 絞り込まれた月の合計金額を表示 */}
         <div style={{ fontSize: '2.5rem', fontWeight: 'bold', margin: '20px 0', color: '#fff' }}>
           ¥ {totalBilling.toLocaleString()}
         </div>
-        
+
         {selectedGame !== 'すべて' ? (
           <form onSubmit={handleBillingSubmit} style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
             <input 
@@ -83,7 +143,7 @@ function BillingModal({
           maxHeight: '200px', overflowY: 'auto', marginBottom: '20px', 
           borderTop: '1px solid #444', paddingTop: '10px', textAlign: 'left' 
         }}>
-          {billingLogs.map(log => (
+          {filteredLogs.map(log => (
             <div key={log.id} style={{ 
               display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
               padding: '10px', borderBottom: '1px solid #333' 
@@ -103,7 +163,7 @@ function BillingModal({
               )}
             </div>
           ))}
-          {billingLogs.length === 0 && <div style={{ color: '#666', textAlign: 'center', padding: '20px' }}>履歴はありません</div>}
+          {filteredLogs.length === 0 && <div style={{ color: '#666', textAlign: 'center', padding: '20px' }}>履歴はありません</div>}
         </div>
 
         <button 

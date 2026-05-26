@@ -142,6 +142,7 @@ return (
         <LogList 
           filteredLogs={filteredLogs}
           currentTheme={currentTheme}
+          selectedGame={selectedGame}
           startEdit={startEdit}
           handleDelete={handleDelete}
         />

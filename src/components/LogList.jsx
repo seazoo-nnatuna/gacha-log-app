@@ -1,7 +1,7 @@
 import React from 'react';
 import CyberPlate from './CyberPlate';
 
-function LogList({ filteredLogs, currentTheme, startEdit, handleDelete }) 
+function LogList({ filteredLogs, currentTheme, selectedGame, startEdit, handleDelete }) 
 {
   return (
     <>
@@ -78,17 +78,19 @@ function LogList({ filteredLogs, currentTheme, startEdit, handleDelete })
                 </div>
                 
                 {/* 右側のボタンブロック */}
-                <div style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  gap: '4px', 
-                  marginLeft: '10px', 
-                  alignItems: 'flex-end', 
-                  flexShrink: 0 
-                }}>
-                  <button onClick={() => startEdit(log)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '0.75rem', padding: '0', textAlign: 'right' }}>編集</button>
-                  <button onClick={() => handleDelete(log.id)} style={{ background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', fontSize: '0.75rem', padding: '0', textAlign: 'right' }}>削除</button>
-                </div>
+                {selectedGame != 'すべて' && (
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '4px', 
+                    marginLeft: '10px', 
+                    alignItems: 'flex-end', 
+                    flexShrink: 0 
+                  }}>
+                    <button onClick={() => startEdit(log)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '0.75rem', padding: '0', textAlign: 'right' }}>編集</button>
+                    <button onClick={() => handleDelete(log.id)} style={{ background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', fontSize: '0.75rem', padding: '0', textAlign: 'right' }}>削除</button>
+                  </div>
+                )}
               </div>
             );
           })}

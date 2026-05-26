@@ -7,9 +7,7 @@ function GachaForm({ selectedGame, selectedType, formData, setFormData, handleSu
   // ゲームが選択されていない時の表示
   if (selectedGame === 'すべて') {
     return (
-      <div style={{ textAlign: 'center', padding: '40px', color: '#666', border: '2px dashed #333', borderRadius: '15px', marginBottom: '40px' }}>
-        ゲームを選択すると記録が可能になります
-      </div>
+      <div> </div>
     );
   }
 

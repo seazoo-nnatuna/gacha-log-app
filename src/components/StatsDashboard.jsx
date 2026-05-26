@@ -1,9 +1,9 @@
 import React from 'react';
-import StatCard from './StatCard'; // ← この部品の中でさらに StatCard を使います
+import StatCard from './StatCard';
 
 function StatsDashboard({ totalPulls, star5Count, averagePulls, pickupRate, pickupCount, surinukeCount }) 
 {
-  // Reactでは複数の要素を返す時に <></>（フラグメント）で囲むルールがあります
+  // Reactでは複数の要素を返す時に <></>（フラグメント）で囲むルールがある
   return (
     <>
       {/* 集計ダッシュボード */}
@@ -28,7 +28,7 @@ function StatsDashboard({ totalPulls, star5Count, averagePulls, pickupRate, pick
         textAlign: 'center',
         marginBottom: '10px'
       }}>
-        <div style={{ fontSize: '0.8rem', color: '#aaa' }}>星5中 PU率</div>
+        <div style={{ fontSize: '0.8rem', color: '#aaa' }}>PU率</div>
         <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FFD700' }}>{pickupRate}%</div>
         <div style={{ fontSize: '0.7rem', marginTop: '5px' }}>
           (PU: {pickupCount} / すり抜け: {surinukeCount})
