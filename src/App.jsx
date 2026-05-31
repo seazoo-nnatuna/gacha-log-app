@@ -84,11 +84,44 @@ return (
         }}></div>
 
         {/* 上部のコンテンツ（ヘッダーからPU率まで） */}
-        <div style={{ maxWidth: '480px', margin: '0 auto', padding: '20px', position: 'relative', zIndex: 1 }}>
-
+        <div style=
+        {{
+          maxWidth: '480px',
+          margin: '0 auto',
+          padding: '20px',
+          position: 'relative',
+          zIndex: 1
+        }}>
           <Header currentTheme={currentTheme} handleSignOut={handleSignOut} />
           <GameTabs selectedGame={selectedGame} setSelectedGame={setSelectedGame} currentTheme={currentTheme} />
-          <TypeTabs selectedType={selectedType} setSelectedType={setSelectedType} currentTheme={currentTheme} />
+
+          {/* タブと課金ボタン */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '18px'
+          }}>
+            <TypeTabs selectedType={selectedType} setSelectedType={setSelectedType} currentTheme={currentTheme} />
+
+            {/* 課金額を確認するボタン */}
+            <button 
+              onClick={() => setIsModalOpen(true)} // ★押すとウィンドウが開く(trueになる)
+              style={{
+                backgroundColor: 'transparent',
+                border: `2px solid ${currentTheme.accent}`,
+                color: currentTheme.accent,
+                padding: '4px 10px',      // ボタンサイズ
+                borderRadius: '20px',     //　ボタンの丸み
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                transform: 'translateY(-16px)'
+              }}
+            >
+              💰 課金額
+            </button>
+          </div>
 
           {/* ▼ 集計ダッシュボードとPU率パネル */}
           <StatsDashboard 
@@ -99,25 +132,6 @@ return (
             pickupCount={pickupCount}
             surinukeCount={surinukeCount}
           />
-
-          {/* 課金額を確認するボタン */}
-          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <button 
-              onClick={() => setIsModalOpen(true)} // ★押すとウィンドウが開く(trueになる)
-              style={{
-                backgroundColor: 'transparent',
-                border: `2px solid ${currentTheme.accent}`,
-                color: currentTheme.accent,
-                padding: '8px 24px',
-                borderRadius: '20px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              💰 課金額を確認
-            </button>
-          </div>
 
         </div>
       </div>
