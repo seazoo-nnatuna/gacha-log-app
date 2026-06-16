@@ -105,7 +105,7 @@ function BillingModal({
 
         {/* 絞り込まれた月の合計金額を表示 */}
         <div style={{ fontSize: '2.5rem', fontWeight: 'bold', margin: '20px 0', color: '#fff' }}>
-          ¥ {totalBilling.toLocaleString()}
+          ¥ {displayTotal.toLocaleString()}
         </div>
 
         {selectedGame !== 'すべて' ? (
